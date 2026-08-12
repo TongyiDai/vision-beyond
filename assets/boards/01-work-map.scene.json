@@ -1,0 +1,24 @@
+{
+  "canvas": {"width": 1200, "height": 675, "ratio": "16:9", "background": "#FFFFFF", "grid": 8},
+  "intent": {
+    "core_message": "先认识你，再找你漏掉的事",
+    "composition": "axis-flow",
+    "focus_node": "map"
+  },
+  "style": {"theme": "geometry-minimal", "accent_color": "#2F6BFF", "line_weight": 1, "corner_radius": 0},
+  "nodes": [
+    {"id": "identity", "type": "point", "label": "身份", "importance": 2},
+    {"id": "goal", "type": "point", "label": "目标", "importance": 3},
+    {"id": "activity", "type": "point", "label": "近期工作", "importance": 3},
+    {"id": "map", "type": "circle", "label": "工作地图", "importance": 5, "accent": true},
+    {"id": "confirm", "type": "point", "label": "用户确认", "importance": 4},
+    {"id": "top5", "type": "frame", "label": "视野之外 Top 5", "importance": 5}
+  ],
+  "edges": [
+    {"from": "identity", "to": "goal", "relation": "补足"},
+    {"from": "goal", "to": "activity", "relation": "校准"},
+    {"from": "activity", "to": "map", "relation": "归并"},
+    {"from": "map", "to": "confirm", "relation": "修正"},
+    {"from": "confirm", "to": "top5", "relation": "筛选"}
+  ]
+}

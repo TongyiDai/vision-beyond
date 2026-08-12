@@ -1,0 +1,26 @@
+{
+  "canvas": {"width": 1200, "height": 675, "ratio": "16:9", "background": "#FFFFFF", "grid": 8},
+  "intent": {
+    "core_message": "多源证据共同指向一个值得注意的变化",
+    "composition": "radial-center",
+    "focus_node": "change"
+  },
+  "style": {"theme": "geometry-minimal", "accent_color": "#2F6BFF", "line_weight": 1, "corner_radius": 0},
+  "nodes": [
+    {"id": "message", "type": "point", "label": "消息", "importance": 3},
+    {"id": "meeting", "type": "point", "label": "会议", "importance": 3},
+    {"id": "document", "type": "point", "label": "有权限文档", "importance": 3},
+    {"id": "approval", "type": "point", "label": "审批", "importance": 4},
+    {"id": "task", "type": "point", "label": "任务", "importance": 3},
+    {"id": "reaction", "type": "point", "label": "表情", "importance": 2},
+    {"id": "change", "type": "circle", "label": "关键变化", "importance": 5, "accent": true}
+  ],
+  "edges": [
+    {"from": "message", "to": "change", "relation": "请求"},
+    {"from": "meeting", "to": "change", "relation": "结论"},
+    {"from": "document", "to": "change", "relation": "更新"},
+    {"from": "approval", "to": "change", "relation": "动作"},
+    {"from": "task", "to": "change", "relation": "责任"},
+    {"from": "reaction", "to": "change", "relation": "辅助"}
+  ]
+}

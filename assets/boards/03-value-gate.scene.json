@@ -1,0 +1,16 @@
+{
+  "canvas": {"width": 1200, "height": 675, "ratio": "16:9", "background": "#FFFFFF", "grid": 8},
+  "intent": {
+    "core_message": "高价值且尚未消费，才进入 Top 5",
+    "composition": "matrix-2d",
+    "focus_node": "top5"
+  },
+  "style": {"theme": "geometry-minimal", "accent_color": "#2F6BFF", "line_weight": 1, "corner_radius": 0},
+  "nodes": [
+    {"id": "noise", "type": "point", "label": "群聊噪声", "importance": 1, "state": "low-low"},
+    {"id": "known", "type": "point", "label": "已处理事项", "importance": 2, "state": "high-low"},
+    {"id": "maybe", "type": "point", "label": "可能值得看", "importance": 3, "state": "low-high"},
+    {"id": "top5", "type": "circle", "label": "Top 5", "importance": 5, "state": "high-high", "accent": true}
+  ],
+  "edges": []
+}

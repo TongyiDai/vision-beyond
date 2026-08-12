@@ -1,0 +1,26 @@
+{
+  "canvas": {"width": 1200, "height": 675, "ratio": "16:9", "background": "#FFFFFF", "grid": 8},
+  "intent": {
+    "core_message": "表情补足消费与轻量回应证据",
+    "composition": "input-process-output",
+    "focus_node": "evidence"
+  },
+  "style": {"theme": "geometry-minimal", "accent_color": "#2F6BFF", "line_weight": 1, "corner_radius": 0},
+  "nodes": [
+    {"id": "operator", "type": "point", "label": "谁点的", "importance": 3},
+    {"id": "emoji", "type": "point", "label": "什么表情", "importance": 3},
+    {"id": "time", "type": "point", "label": "何时点的", "importance": 3},
+    {"id": "evidence", "type": "circle", "label": "辅助证据", "importance": 5, "accent": true},
+    {"id": "consumed", "type": "point", "label": "已接触", "importance": 4},
+    {"id": "answered", "type": "point", "label": "可能已回应", "importance": 3},
+    {"id": "attention", "type": "point", "label": "多人关注", "importance": 2}
+  ],
+  "edges": [
+    {"from": "operator", "to": "evidence", "relation": "身份"},
+    {"from": "emoji", "to": "evidence", "relation": "语义"},
+    {"from": "time", "to": "evidence", "relation": "时序"},
+    {"from": "evidence", "to": "consumed", "relation": "支持"},
+    {"from": "evidence", "to": "answered", "relation": "弱支持"},
+    {"from": "evidence", "to": "attention", "relation": "弱支持"}
+  ]
+}

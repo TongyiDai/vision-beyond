@@ -1,0 +1,9 @@
+.DS_Store
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+.agents/
+skills-lock.json
+state.json
+tmp/
