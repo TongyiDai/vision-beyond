@@ -9,7 +9,9 @@
 | 群/私聊上下文 | `im:message.group_msg:get_as_user`、`im:message.p2p_msg:get_as_user` | 推荐 | 未回最高为候选 |
 | 消息表情 | `im:message.reactions:read` | 推荐 | 无消费/轻量回应辅助证据 |
 | 文档搜索 | `search:docs:read` | 核心 | 无文档候选 |
-| 文档打开记录 | `drive:file:view_record:readonly` | 推荐 | 文档消费状态未知 |
+| 本人最近打开时间 | `search:docs:read` | 核心 | 文档消费状态未知 |
+| 文档聚合统计 | `drive:drive.metadata:readonly`、`drive:drive:readonly` 或 `drive:drive` | 推荐 | 不判断多人阅读 |
+| 文档访问者列表 | `drive:file:view_record:readonly` | 可选 | 只使用搜索结果中的本人打开时间 |
 | 文档正文 | `docs:document.content:read` 或 `docx:document:readonly` | 推荐 | 只用元信息 |
 | 日历 | `calendar:calendar.event:read` | 可选 | 不覆盖日程 |
 | 历史会议 | `vc:meeting.search:read` | 可选 | 不覆盖即时/历史会议 |

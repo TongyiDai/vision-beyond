@@ -38,6 +38,12 @@ class DoctorTests(unittest.TestCase):
         self.assertTrue(result["messages_search"]["available"])
         self.assertFalse(result["message_reactions"]["available"])
 
+    def test_document_statistics_accepts_any_read_scope(self) -> None:
+        for scope in ("drive:drive.metadata:readonly", "drive:drive:readonly", "drive:drive"):
+            with self.subTest(scope=scope):
+                result = doctor.evaluate_capabilities({scope})
+                self.assertTrue(result["document_statistics"]["available"])
+
     def test_one_read_source_can_run_in_degraded_mode(self) -> None:
         payload = {
             "verified": True,
