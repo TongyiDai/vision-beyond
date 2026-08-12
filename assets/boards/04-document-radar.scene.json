@@ -1,0 +1,26 @@
+{
+  "canvas": {"width": 1200, "height": 675, "ratio": "16:9", "background": "#FFFFFF", "grid": 8},
+  "intent": {
+    "core_message": "更新、关注与本人消费证据共同形成文档雷达",
+    "composition": "input-process-output",
+    "focus_node": "radar"
+  },
+  "style": {"theme": "geometry-minimal", "accent_color": "#2F6BFF", "line_weight": 1, "corner_radius": 0},
+  "nodes": [
+    {"id": "updated", "type": "point", "label": "最近更新", "importance": 4},
+    {"id": "created", "type": "point", "label": "窗口内新建", "importance": 4},
+    {"id": "readership", "type": "point", "label": "多人阅读", "importance": 3},
+    {"id": "radar", "type": "circle", "label": "文档雷达", "importance": 5, "accent": true},
+    {"id": "relevant", "type": "point", "label": "与你相关", "importance": 5},
+    {"id": "unseen", "type": "point", "label": "可能未看", "importance": 5},
+    {"id": "candidate", "type": "point", "label": "进入 Top 5 候选", "importance": 5}
+  ],
+  "edges": [
+    {"from": "updated", "to": "radar"},
+    {"from": "created", "to": "radar"},
+    {"from": "readership", "to": "radar"},
+    {"from": "radar", "to": "relevant"},
+    {"from": "radar", "to": "unseen"},
+    {"from": "radar", "to": "candidate"}
+  ]
+}

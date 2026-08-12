@@ -32,6 +32,10 @@ CAPABILITIES = {
     ),
     "message_reactions": Capability("recommended", all_of=("im:message.reactions:read",)),
     "documents_search": Capability("core", all_of=("search:docs:read",)),
+    "document_statistics": Capability(
+        "recommended",
+        any_of=("drive:drive.metadata:readonly", "drive:drive:readonly", "drive:drive"),
+    ),
     "document_open_record": Capability("recommended", all_of=("drive:file:view_record:readonly",)),
     "document_content": Capability(
         "recommended",

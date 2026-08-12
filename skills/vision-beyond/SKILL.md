@@ -1,17 +1,13 @@
 ---
 name: vision-beyond
-description: "基于飞书 lark-cli，先从身份、OKR、审批、任务与近期活动建立可确认的工作地图，再从消息、会议、纪要和有权限文档中筛出用户可能遗漏且会影响判断或行动的 Top 5。用户说‘视野之外’‘我漏掉了什么’‘未读未回’‘没参加的会’‘可能没看的文档’或‘飞书信息雷达’时使用。"
-license: MIT
-metadata:
-  requires:
-    bins: ["lark-cli", "python3"]
+description: "基于飞书 lark-cli，先从身份、OKR、审批、任务与近期活动建立可确认的工作地图，再从消息、会议、纪要和有权限文档中找到视野之外、值得关注的飞书信号，筛出可能影响判断或行动的 Top 5。用户说‘视野之外’‘我漏掉了什么’‘未读未回’‘没参加的会’‘可能没看的文档’或‘飞书信息雷达’时使用。"
 ---
 
 # 视野之外
 
 ## 核心目标
 
-发现“用户尚未消费、且可能改变判断、行动或关系”的工作信号。未读数量只负责召回，用户确认的工作地图、责任关系、状态变化和证据强度共同决定排序。
+帮用户找到视野之外、值得关注的飞书信号。未读、未回、更新时间和阅读量只负责召回，用户确认的工作地图、责任关系、状态变化和证据强度共同决定排序。
 
 ## 开始前
 
@@ -114,14 +110,14 @@ lark-cli im +messages-search --as user --query "" --chat-type p2p \
 
 对可能需要回复的消息，读取同一线程或私聊窗口的后续上下文。分页或线程不完整时，未回状态最高只能为 `candidate`。详细规则见 [references/message-state.md](references/message-state.md)。
 
-广泛召回阶段可以使用 `--no-reactions` 控制请求量。初排前 20 条消息应再次批量读取并保留默认 reaction enrichment：
+广泛召回阶段使用 `--no-reactions` 控制请求量。若已授权 `im:message.reactions:read`，只对高位消息候选补充 reaction 聚合计数：
 
 ```bash
 lark-cli im +messages-mget --as user \
   --message-ids "<COMMA-SEPARATED-MESSAGE-IDS>" --format json
 ```
 
-返回的 `reactions.details` 包含操作者、动作时间和 `emoji_type`，可识别当前用户发出的表情；`reactions.counts` 可提供群体关注线索。判定规则见 [references/reaction-signal.md](references/reaction-signal.md)。表情属于辅助证据：用户表情可以证明接触过消息，只有语义非常明确的轻量请求才可能支持“已回应”；群体表情只影响关注度，不能证明事实正确或用户态度。
+reaction 数量只作为弱关注线索，排序加分最多 3 分，不能单独进入 Top 5。当前用户的 reaction 最多支持“接触过”，不能替代复杂请求的正文回复或任务闭环。字段缺失不构成反向证据。细则见 [references/reaction-signal.md](references/reaction-signal.md)。
 
 ### 4. 采集会议与会议产物
 
@@ -140,20 +136,37 @@ lark-cli im +messages-mget --as user \
 
 ### 5. 采集有权限文档
 
-文档是一等候选源。对每个已确认议题执行用户身份的主题搜索：
+文档是一等候选源。并行执行“近期更新”和“窗口内新建”两条召回路径。对每个已确认议题先做主题搜索：
 
 ```bash
 lark-cli drive +search --as user --query "<TOPIC>" \
-  --doc-types doc,docx,sheet,wiki --sort edit_time \
+  --doc-types doc,docx,sheet,bitable,wiki,file --sort edit_time \
+  --page-size 20 --format json
+
+lark-cli drive +search --as user --query "<TOPIC>" \
+  --created-since "<START_DATE>" --created-until "<END_DATE>" \
+  --doc-types doc,docx,sheet,bitable,wiki,file --sort create_time \
   --page-size 20 --format json
 ```
 
 - `drive +search --as user` 只证明当前身份可发现该对象，无法证明覆盖全部可访问文档。
-- `update_time > last_open_time` 可标为“更新后可能未看”。
-- 没有打开记录且议题高度相关，可标为“可能未看过”。
+- `update_time > last_open_time` 可标为“更新后可能未看”；`last_open_time` 缺失或为零且议题高度相关，可标为“未发现本人访问证据”。
+- 日期过滤按自然日召回。返回后必须用 `create_time` 在内存中裁剪到精确的 `<START> → <END>` 窗口。
 - 缺少打开字段、分页未完成或仅凭搜索缺失，只能标为 `unknown`。
 - `--edited-since` 描述用户编辑行为，不能充当“别人最近更新”的全局过滤器。
-- 先看标题、摘要、更新时间和来源；只有进入高位候选后才读取正文。
+- 先按工作地图相关性、标题、摘要、创建/更新时间和本人打开时间初排；最多对前 20 条相关文档调用聚合统计：
+
+```bash
+lark-cli drive file.statistics get --as user \
+  --file-token "<TOKEN>" --file-type "<TYPE>" --format json
+```
+
+- 当前自然日优先使用 `uv_today`，较早但仍在窗口内的新建文档使用生命周期 `uv`。`uv` 比 `pv` 更接近独立阅读人数。
+- 用户已配置独立阅读人数门槛时遵循用户配置。没有配置时，在同日、同议题候选中做相对排名：至少 5 个候选时，只有独立阅读人数高于同批中位数且位于前 20% 才标为“多人阅读”；样本不足 5 个时要求至少 5 个独立访问者。
+- 聚合统计调用返回 `forbidden`、`not found`、文件类型不支持或字段缺失时，不补写热度结论，保留更新时间与本人打开时间证据并降低置信度。
+- `file.view_records` 只能作为可选交叉验证，常受文档所有者权限限制；不能把调用失败写成“本人未读”。
+- 阅读量本身没有业务价值。候选仍须命中工作地图，并能说明变化、关系和下一步。
+- 只有进入高位候选后才读取正文。
 
 ### 6. 合并、去重和排序
 
@@ -221,7 +234,7 @@ printf '%s\n' '<HEX-FINGERPRINT>' | \
 
 ## 永久边界
 
-- 不把发送者职级、群规模、消息长度或热度单独当作价值。
+- 不把发送者职级、群规模、消息长度、reaction 数量或文档阅读量单独当作价值。
 - 不把 AI 会议摘要未经原始证据核验地写成事实。
 - 不把业务正文、人员标识、reaction ID、文档 token、会议 ID、审批实例号或授权材料写入状态、日志、仓库或长期记忆。
 - 不声称“扫描了用户所有未读内容”；当前能力本质上是权限感知、议题驱动的高价值召回。
