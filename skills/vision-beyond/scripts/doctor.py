@@ -9,7 +9,11 @@ import re
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 from typing import Any
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from lark_identity_probe import probe_lark_identity, public_probe
 
 
 class Capability:
@@ -75,6 +79,18 @@ def evaluate_capabilities(scopes: set[str]) -> dict[str, dict[str, Any]]:
     return result
 
 
+def unknown_capabilities(reason: str, *, available: set[str] | None = None) -> dict[str, dict[str, Any]]:
+    available = available or set()
+    result: dict[str, dict[str, Any]] = {}
+    for name, requirement in CAPABILITIES.items():
+        result[name] = {
+            "available": name in available,
+            "level": requirement.level,
+            "missing": [] if name in available else [reason],
+        }
+    return result
+
+
 def inspect_auth(payload: dict[str, Any]) -> dict[str, Any]:
     identities = payload.get("identities") if isinstance(payload.get("identities"), dict) else {}
     user = identities.get("user") if isinstance(identities.get("user"), dict) else {}
@@ -104,11 +120,48 @@ def inspect_auth(payload: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def inspect_compat_probe(probe: dict[str, Any]) -> dict[str, Any]:
+    warnings = list(probe.get("warnings") or [])
+    assurance = probe.get("identity_assurance")
+    if assurance == "resolved":
+        warnings.append("scope inventory is unavailable in this lark-cli runtime; probe each source live during scan")
+        return {
+            "probe": public_probe(probe),
+            "user_identity": {"available": True, "verified": False, "token_status": "unknown"},
+            "capabilities": unknown_capabilities("scope inventory unavailable"),
+            "available_sources": [],
+            "ready_for_core_scan": True,
+            "ready_for_full_scan": False,
+            "warnings": warnings,
+        }
+    if assurance == "user_context":
+        warnings.append("stable subject identity remains unresolved; do not use this mode for subject-bound writes or bindings")
+        return {
+            "probe": public_probe(probe),
+            "user_identity": {"available": True, "verified": False, "token_status": "unknown"},
+            "capabilities": unknown_capabilities("scope inventory unavailable", available={"tasks"}),
+            "available_sources": ["tasks"],
+            "ready_for_core_scan": True,
+            "ready_for_full_scan": False,
+            "warnings": warnings,
+        }
+    return {
+        "probe": public_probe(probe),
+        "user_identity": {"available": False, "verified": False, "token_status": "unknown"},
+        "capabilities": unknown_capabilities("identity probe unavailable"),
+        "available_sources": [],
+        "ready_for_core_scan": False,
+        "ready_for_full_scan": False,
+        "warnings": warnings,
+    }
+
+
 def main() -> int:
     cli = shutil.which("lark-cli")
     result: dict[str, Any] = {
         "ok": False,
         "lark_cli": {"installed": bool(cli), "version": None},
+        "probe": None,
         "user_identity": {"available": False, "verified": False, "token_status": "unknown"},
         "capabilities": {},
         "available_sources": [],
@@ -129,6 +182,25 @@ def main() -> int:
             [cli, "--version"], capture_output=True, text=True, timeout=10, env=env, check=False
         )
         result["lark_cli"]["version"] = parse_version(version_run.stdout + version_run.stderr)
+    except (OSError, subprocess.TimeoutExpired):
+        result["warnings"].append("lark-cli readiness check failed or timed out")
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 1
+
+    probe = probe_lark_identity(env=env)
+    result["probe"] = public_probe(probe)
+    if not probe["ok"]:
+        result["warnings"].extend(probe.get("warnings") or [])
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 1
+
+    if probe["method"] != "auth_status":
+        result.update(inspect_compat_probe(probe))
+        result["ok"] = result["ready_for_core_scan"]
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0 if result["ok"] else 1
+
+    try:
         auth_run = subprocess.run(
             [cli, "auth", "status", "--json", "--verify"],
             capture_output=True,
@@ -137,24 +209,16 @@ def main() -> int:
             env=env,
             check=False,
         )
-    except (OSError, subprocess.TimeoutExpired):
-        result["warnings"].append("lark-cli readiness check failed or timed out")
-        print(json.dumps(result, ensure_ascii=False, indent=2))
-        return 1
-
-    if auth_run.returncode != 0:
-        result["warnings"].append("user authentication is unavailable; run lark-cli auth status --json --verify")
-        print(json.dumps(result, ensure_ascii=False, indent=2))
-        return 1
-
-    try:
         auth_payload = json.loads(auth_run.stdout)
-    except json.JSONDecodeError:
+    except (OSError, subprocess.TimeoutExpired, json.JSONDecodeError):
+        result.update(inspect_compat_probe(probe))
         result["warnings"].append("lark-cli returned an unreadable authentication response")
+        result["ok"] = result["ready_for_core_scan"]
         print(json.dumps(result, ensure_ascii=False, indent=2))
-        return 1
+        return 0 if result["ok"] else 1
 
     result.update(inspect_auth(auth_payload))
+    result["probe"] = public_probe(probe)
     result["ok"] = result["ready_for_core_scan"]
     if not result["ready_for_full_scan"]:
         result["warnings"].append("some recommended or optional sources will run in degraded mode")

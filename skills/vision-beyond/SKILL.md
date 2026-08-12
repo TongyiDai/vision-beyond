@@ -12,7 +12,7 @@ description: "基于飞书 lark-cli，先从身份、OKR、审批、任务与近
 ## 开始前
 
 1. 读取当前安装的 `lark-shared`，并按需读取 `lark-im`、`lark-drive`、`lark-doc`、`lark-calendar`、`lark-vc`、`lark-note`、`lark-minutes`、`lark-task`、`lark-approval`、`lark-okr`。
-2. 执行 `python3 scripts/doctor.py`。只有用户身份 `verified=true` 才能读取用户数据；某个可选域缺权限时保留降级结果，不能把局部覆盖写成全量巡检。
+2. 执行 `python3 scripts/doctor.py`。支持 `auth status --json --verify` 的环境必须确认 `verified=true`；当前 CLI 构建若没有 `auth` 子命令，doctor 可以退回只读兼容探测。`contact +get-user` 代表当前用户已解析；`task` canary 只代表 user-context 可读。某个可选域缺权限时保留降级结果，不能把局部覆盖写成全量巡检。
 3. 所有用户历史数据使用 `--as user`。公司飞书、个人飞书及不同 profile 之间不得混用。
 4. 本 Skill 只读：不发送或回复消息，不标记已读，不编辑文档，不创建任务，不改日历，不处理或发起审批，不申请会议产物权限。
 
@@ -66,7 +66,7 @@ LARKSUITE_CLI_NO_SKILLS_NOTIFIER=1 \
 lark-cli auth status --json --verify
 ```
 
-只有 `verified=true` 且用户身份可用时继续。状态缺失或损坏时回到首次激活，不用旧报告充当本次结果。
+支持 `auth status --json --verify` 的环境只有在 `verified=true` 且用户身份可用时继续。当前 CLI 构建若没有 `auth` 子命令，以 `python3 scripts/doctor.py` 的兼容结果为准：`contact +get-user` 可进入只读巡检，`task` canary 代表 scope 清单未知的更弱模式。状态缺失或损坏时回到首次激活，不用旧报告充当本次结果。
 
 ### 2. 采集行动源
 
