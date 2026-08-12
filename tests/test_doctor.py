@@ -60,6 +60,30 @@ class DoctorTests(unittest.TestCase):
         self.assertTrue(result["ready_for_core_scan"])
         self.assertEqual(result["available_sources"], ["approval_tasks"])
 
+    def test_contact_probe_can_enable_read_only_mode_without_scope_inventory(self) -> None:
+        result = doctor.inspect_compat_probe({
+            "ok": True,
+            "method": "contact_self",
+            "identity_assurance": "resolved",
+            "warnings": ["auth status is unavailable in this CLI build; using read-only compatibility probes"],
+        })
+        self.assertTrue(result["ready_for_core_scan"])
+        self.assertFalse(result["user_identity"]["verified"])
+        self.assertEqual(result["available_sources"], [])
+        self.assertFalse(result["capabilities"]["messages_search"]["available"])
+
+    def test_task_canary_only_confirms_tasks(self) -> None:
+        result = doctor.inspect_compat_probe({
+            "ok": True,
+            "method": "task_canary",
+            "identity_assurance": "user_context",
+            "warnings": ["task canary proves user-context access, not the user's stable subject identity"],
+        })
+        self.assertTrue(result["ready_for_core_scan"])
+        self.assertEqual(result["available_sources"], ["tasks"])
+        self.assertTrue(result["capabilities"]["tasks"]["available"])
+        self.assertFalse(result["capabilities"]["messages_search"]["available"])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -46,6 +46,8 @@ lark-cli auth status --json --verify
 
 授权过程可能需要在浏览器中完成。请遵循当前 `lark-shared` Skill 给出的 split-flow 和二维码步骤；不要把授权链接或 device code 发到 Issue、日志或截图里。
 
+当前 CLI 构建若没有 `auth` 子命令，`scripts/doctor.py` 会退回只读兼容探测：先尝试 `contact +get-user --as user` 解析当前用户，再在必要时用 `task +get-my-tasks --as user` 证明 user-context 可读。兼容模式只用于只读巡检，不把它写成强身份校验。
+
 ## 第一次怎么用
 
 在 Agent 中说：
