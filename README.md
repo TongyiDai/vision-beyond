@@ -1,5 +1,12 @@
 > “built for humans and AI Agents.” — [Lark/Feishu CLI](https://github.com/larksuite/cli)
 
+<p align="center">
+  <img src="https://img.shields.io/badge/Agent%20Skill-agentskills.io-2F6BFF" alt="Agent Skill">
+  <img src="https://img.shields.io/badge/license-MIT-3fb950" alt="License MIT">
+  <img src="https://img.shields.io/badge/python-%3E%3D3.8-3572A5" alt="Python >=3.8">
+  <img src="https://img.shields.io/badge/works%20with-Codex%20|%20Claude%20|%20Cursor%20|%20TRAE-555" alt="Works with major agents">
+</p>
+
 # 视野之外 / Vision Beyond
 
 帮你找到视野之外、值得关注的飞书信号。
