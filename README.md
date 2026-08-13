@@ -126,8 +126,8 @@ Skill 先按已确认议题召回，再对高位候选读取 `uv_today`、`pv_to
 # 查看当前飞书能力；输出会隐藏姓名、用户 ID 和完整 scope 列表
 python3 skills/vision-beyond/scripts/doctor.py
 
-# 验证 Skill 结构
-python3 /path/to/skill-creator/scripts/quick_validate.py skills/vision-beyond
+# 可选：若本机已安装 skill-creator 工具，可额外校验 Skill 结构
+# python3 "$SKILL_CREATOR/scripts/quick_validate.py" skills/vision-beyond
 
 # 运行无真实业务数据测试
 python3 -m unittest discover -s tests -v
