@@ -88,7 +88,7 @@ lark-cli auth status --json --verify
 
 分类说明、统计和摘要只引用这 5 条，不会在报告后半段继续塞入新候选。
 
-<p align="center"><img src="assets/boards/03-value-gate.svg" alt="高价值且尚未消费，才进入 Top 5" /></p>
+<p align="center"><img src="assets/boards/03-value-gate.svg?v=2" alt="高价值且尚未消费，才进入 Top 5" /></p>
 
 ## 文档如何进入推荐
 
