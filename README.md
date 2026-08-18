@@ -1,6 +1,6 @@
 > “built for humans and AI Agents.” — [Lark/Feishu CLI](https://github.com/larksuite/cli)
 
-# 视野之外 / Vision Beyond
+<h1 align="center">视野之外 / Vision Beyond</h1>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Agent%20Skill-agentskills.io-2F6BFF" alt="Agent Skill">
